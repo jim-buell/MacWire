@@ -2,7 +2,7 @@
 
 To run MacWire Helper, follow the [README](README.md). Building the classic
 application additionally requires Retro68 with the m68k-apple-macos toolchain,
-CMake, Make, Python 3, hfsutils (`hformat`, `hcopy`, `humount`), and `truncate`
+CMake, Make, Python 3, hfsutils (`hformat`, `hcopy`, `hmkdir`, `humount`), and `truncate`
 on your PATH. These tools are installed separately.
 
 ## Classic application
@@ -20,10 +20,26 @@ cmake --build build/classic -j4
 ```
 
 The build produces `build/classic/MacWire.bin` and a timestamped 800 KB HFS disk
-image. Packaging checks that the application data and resource forks survive an
-HFS round trip. HFS utilities share mount state in `~/.hcwd`; run packaging
+image. The disk includes a SimpleText **Read Me** and a **Licenses**
+folder. `client/ReadMe.md` is the UTF-8 source; `client/package_disk_docs.py`
+converts documents to MacRoman with CR line endings and `TEXT`/`ttxt` Finder
+metadata. The Read Me preserves Markdown bold/italic emphasis in a native `styl`
+resource, uses monospaced command blocks, and leaves prose unwrapped so the
+editor can fit it to the window. Transfer it as MacBinary or inside the HFS disk
+to retain its formatting. Plain-text-only editors can still read the data fork.
+Long license notices are split into numbered parts below 30 KB;
+joining the decoded parts preserves all notice text. Packaging checks that the
+application forks and every document survive an HFS round trip.
+HFS utilities share mount state in `~/.hcwd`; run packaging
 sequentially. A successful build does not verify native drawing or MacTCP behavior
 on real hardware. See [classic Mac setup](client/SETUP.md) for transfer instructions.
+
+Preview the disk documents without mounting HFS, or package an already built app:
+
+```sh
+python3 client/package_disk_docs.py build/disk-docs
+sh client/package_hfs_disk.sh build/classic/MacWire.bin build/classic/MacWire.dsk
+```
 
 ## Assets and tests
 
@@ -63,8 +79,9 @@ not its hardware behavior.
 
 Package the matching MacBinary and application-only disk together with the root
 license and third-party notices. Keep the ZIP's accompanying notices with the
-downloads; the notices are outside the HFS image. The packager leaves both supplied
-files unchanged and checks their structure, not their equivalence.
+downloads. Current HFS builds also carry the Read Me and classic-client notices
+on the disk itself; older application-only disks may not. The ZIP packager leaves
+both supplied files unchanged and checks their structure, not their equivalence.
 
 ```sh
 python3 scripts/package_release.py --classic-only \

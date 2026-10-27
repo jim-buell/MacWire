@@ -12,11 +12,13 @@ disk_path="${disk_base%.*}-${timestamp}.dsk"
 python3 "$(dirname "$0")/stamp_macbinary.py" "$app_bin"
 temp_disk=$(mktemp "${disk_path}.tmp.XXXXXX")
 roundtrip=$(mktemp "${disk_path}.check.XXXXXX")
-trap 'rm -f "$temp_disk" "$roundtrip"' EXIT HUP INT TERM
+docs_dir=$(mktemp -d "${disk_path}.docs.XXXXXX")
+trap 'rm -f "$temp_disk" "$roundtrip"; rm -rf "$docs_dir"' EXIT HUP INT TERM
 
 truncate -s 819200 "$temp_disk"
 hformat -l 'MacWire' "$temp_disk" >/dev/null
 hcopy -m "$app_bin" :MacWire
+python3 "$(dirname "$0")/package_disk_docs.py" "$docs_dir" --copy-to-hfs
 hcopy -m :MacWire "$roundtrip"
 
 python3 - "$app_bin" "$roundtrip" <<'PY'

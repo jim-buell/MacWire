@@ -9,3 +9,7 @@ downloads export-ignore
 # Preserve third-party notices verbatim, including upstream whitespace.
 backend/licenses/* -whitespace
 client/licenses/* -whitespace
+
+# Preserve the author's Markdown hard breaks and spacing verbatim.
+README.md whitespace=-blank-at-eol
+client/ReadMe.md whitespace=-blank-at-eol

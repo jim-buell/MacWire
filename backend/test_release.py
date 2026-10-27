@@ -26,6 +26,54 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_classic_documents_preserve_text_and_fit_teachtext(self):
+        from binascii import crc_hqx
+        spec = importlib.util.spec_from_file_location('package_disk_docs', ROOT / 'client/package_disk_docs.py')
+        package = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(package)
+        with tempfile.TemporaryDirectory() as directory:
+            documents = package.prepare(Path(directory))
+            for relative, binary, data in documents:
+                self.assertLessEqual(len(data), 30000)
+                self.assertNotIn(b'\n', data)
+                header = binary.read_bytes()[:128]
+                self.assertEqual(header[65:73], b'TEXTttxt')
+                self.assertEqual(header[2:2 + header[1]].decode('mac_roman'), relative.name)
+                self.assertEqual(int.from_bytes(header[83:87], 'big'), len(data))
+                self.assertEqual(int.from_bytes(header[124:126], 'big'), crc_hqx(header[:124], 0))
+                self.assertEqual(binary.read_bytes()[128:128 + len(data)], data)
+            readme = next(data for relative, _, data in documents if str(relative) == 'Read Me')
+            self.assertIn(b'fonts are', readme.lower())
+            self.assertIn('MacWire is an RSS reader for Classic Macintosh—specifically Compact Macs running Macintosh System 7.\r'.encode('mac_roman'), readme)
+            readme_binary = next(binary.read_bytes() for relative, binary, _ in documents
+                                 if str(relative) == 'Read Me')
+            start = 128 + ((len(readme) + 127) // 128) * 128
+            resource = readme_binary[start:start + int.from_bytes(readme_binary[87:91], 'big')]
+            import struct
+            data_offset, map_offset, data_length, map_length = struct.unpack('>IIII', resource[:16])
+            self.assertEqual(resource[map_offset:map_offset + 16], resource[:16])
+            self.assertEqual(resource[map_offset + 30:map_offset + 34], b'styl')
+            self.assertEqual(struct.unpack('>h', resource[map_offset + 38:map_offset + 40])[0], 128)
+            style_length = struct.unpack('>I', resource[data_offset:data_offset + 4])[0]
+            style = resource[data_offset + 4:data_offset + 4 + style_length]
+            count = struct.unpack('>H', style[:2])[0]
+            self.assertEqual(len(style), 2 + count * 20)
+            runs = [struct.unpack('>IhhhBBhHHH', style[2 + i * 20:22 + i * 20]) for i in range(count)]
+            def style_at(text):
+                offset = readme.index(text.encode('mac_roman'))
+                return [run for run in runs if run[0] <= offset][-1]
+            title = style_at('MacWire')
+            self.assertEqual((title[3], title[6], title[4]), (0, 18, 0))
+            self.assertTrue(style_at('What are the requirements?')[4] & 1)
+            for text in ('somewhat', 'may create', 'its articles', 'On the Modern Machine'):
+                self.assertTrue(style_at(text)[4] & 2, text)
+            self.assertEqual(style_at('python3 -m venv')[3], 4)  # Monaco code.
+            for name, source in [('newlib', 'newlib-4.6.0.txt'), ('GPL 3', 'GPL-3.0.txt')]:
+                parts = [data for relative, _, data in documents if relative.name.startswith(name + ' part ')]
+                self.assertGreater(len(parts), 1)
+                self.assertEqual(b''.join(parts).decode('mac_roman').replace('\r', '\n'),
+                                 (ROOT / 'client/licenses' / source).read_text())
+
     def test_classic_bundle_preserves_downloads_and_carries_notices(self):
         import hashlib
         with tempfile.TemporaryDirectory() as directory:
@@ -55,6 +103,10 @@ class ReleaseTests(unittest.TestCase):
                     self.assertEqual(archive.read('MacWire/' + notice), (ROOT / notice).read_bytes())
                 self.assertNotIn('MacWire/backend/main.py', archive.namelist())
                 self.assertIn('MacWire/README.txt', archive.namelist())
+                self.assertEqual(archive.read('MacWire/client/ReadMe.md'),
+                                 (ROOT / 'client/ReadMe.md').read_bytes())
+                self.assertEqual(archive.read('MacWire/README.md'),
+                                 (ROOT / 'README.md').read_bytes())
             self.assertEqual(output.with_suffix('.zip.sha256').read_text(),
                              hashlib.sha256(output.read_bytes()).hexdigest() + '  classic.zip\n')
 
@@ -213,7 +265,7 @@ class ReleaseTests(unittest.TestCase):
                     {'MacWire/' + name for name in (
                         'README.md', 'BUILDING.md', 'THIRD_PARTY.md', 'SECURITY.md',
                         'backend/LAUNCH_AGENT.md', 'backend/IMAGE_ALGORITHMS.md',
-                        'client/SETUP.md',
+                        'client/SETUP.md', 'client/ReadMe.md',
                     )},
                 )
                 for internal in ('DISTRIBUTION.md', 'backend/feeds.json',

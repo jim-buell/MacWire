@@ -74,6 +74,7 @@ client/RSSReader.c
 client/RSSReader.r
 client/ReadHistory.c
 client/ReadHistory.h
+client/ReadMe.md
 client/ReadState.c
 client/ReadState.h
 client/ReaderFont.c
@@ -106,6 +107,7 @@ client/licenses/GPL-3.0.txt
 client/licenses/Multiversal-MIT.txt
 client/licenses/newlib-4.6.0.txt
 client/package_hfs_disk.sh
+client/package_disk_docs.py
 client/shim.c
 client/stamp_macbinary.py
 client/tests/generate_demo_packets.py

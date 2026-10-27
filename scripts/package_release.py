@@ -60,7 +60,8 @@ def main():
     files = list(release_files())
     if args.classic_only:
         files = [path for path in files if path.relative_to(ROOT).as_posix() in
-                 {"LICENSE", "THIRD_PARTY.md", "SECURITY.md", "backend/IMAGE_ALGORITHMS.md"}
+                 {"LICENSE", "client/ReadMe.md"}
+                 or path.suffix == '.md'
                  or path.relative_to(ROOT).as_posix().startswith(("client/licenses/", "backend/licenses/"))]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(args.output, "x", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -74,11 +75,12 @@ def main():
             archive.writestr("MacWire/README.txt", (
                 "MacWire classic application - release candidate\n\n"
                 "Use the matching MacWire Helper source from the same release.\n"
+                "See README.md for the full guide, or client/ReadMe.md for the disk document source.\n"
                 "Transfer MacWire.bin in binary mode and decode MacBinary with both\n"
                 "forks preserved, or mount MacWire.dsk as an HFS application disk.\n"
                 "The disk is not bootable and includes no system software or MacTCP.\n"
                 "Keep LICENSE, THIRD_PARTY.md and all license files with these downloads.\n"
-                "Notices accompany the disk in this ZIP; they are not inside the disk.\n"
+                "New HFS builds also include Read Me and Licenses; older disks may not.\n"
                 "The packager checks structure, not binary/disk equivalence or hardware.\n"
             ))
     checksum = hashlib.sha256(args.output.read_bytes()).hexdigest()
