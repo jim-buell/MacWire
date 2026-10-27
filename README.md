@@ -2,6 +2,8 @@
   
 **MacWire is an RSS reader for Classic Macintosh—specifically Compact Macs running Macintosh System 7.**   
   
+[Download the latest MacWire release](https://github.com/jim-buell/MacWire/releases/latest).
+
 MacWire supports multiple RSS feeds and displays article text, metadata and black-and-white images. The images are resized and dithered (using Atkinson Dithering, naturally) for display on the 1-bit screens used on Compact Macs. Fonts are also customizable in the application’s settings.  
   
 I aimed to create a user experience that would have felt familiar in the early 1990s, but which also provides much of the basic functionality of an RSS reader.   
