@@ -410,7 +410,7 @@ static Boolean ReadConnection(DialogPtr dialog, ConnectionSettings *settings, Bo
     }
     if (!ConnectionPort(port, &settings->port)) {
         ShowPane(dialog, 2);
-        DialogText(dialog, 34, "Enter a port number from 1 to 65535.");
+        DialogText(dialog, 34, "Enter a port from 1 to 65535; the Helper defaults to 8080.");
         SelectDialogItemText(dialog, 32, 0, 32767);
         return false;
     }

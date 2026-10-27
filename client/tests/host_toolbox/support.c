@@ -2,7 +2,7 @@
 #include "Connection.h"
 #include "MacTCPTransport.h"
 #include "Wire.h"
-ConnectionSettings gConnection = {"127.0.0.1", 8081, 0, 24};
+ConnectionSettings gConnection = {"127.0.0.1", 8080, 0, 24};
 char gFeedNames[WIRE_MAX_FEEDS][33];
 short gFeedCount;
 WindowPtr gMainWindow;

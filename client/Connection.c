@@ -3,7 +3,7 @@
 #include "Connection.h"
 #include "WaitCursor.h"
 
-ConnectionSettings gConnection = { "", 8081,
+ConnectionSettings gConnection = { "", 8080,
 #ifdef RSS_DEMO_TRANSPORT
     1,
 #else

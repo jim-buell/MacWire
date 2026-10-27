@@ -250,9 +250,9 @@ resource 'DITL' (136) {
         { 46, 16, 64, 144 }, StaticText { disabled, "Server address:" };
         { 43, 163, 61, 443 }, EditText { enabled, "" };
         { 82, 16, 100, 144 }, StaticText { disabled, "Port:" };
-        { 79, 163, 97, 241 }, EditText { enabled, "8081" };
+        { 79, 163, 97, 241 }, EditText { enabled, "8080" };
         { 76, 274, 97, 446 }, Button { enabled, "Test Connection" };
-        { 201, 16, 229, 446 }, StaticText { disabled, "" };
+        { 201, 16, 229, 446 }, StaticText { disabled, "Helper port: 8080 by default.\rUse the same port here and on the Helper." };
         { 0, 0, 0, 0 }, StaticText { disabled, "" };
         { 264, 16, 282, 116 }, StaticText { disabled, "List title lines:" };
         { 261, 116, 282, 194 }, Control { enabled, 226 };

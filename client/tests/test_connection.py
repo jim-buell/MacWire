@@ -97,7 +97,7 @@ class ConnectionTests(unittest.TestCase):
 
     def test_port_validation(self):
         result = c.c_ushort()
-        for port in (1, 8081, 65535):
+        for port in (1, 8080, 8081, 65535):
             self.assertEqual(self.lib.ConnectionPort(str(port).encode(), c.byref(result)), 1)
             self.assertEqual(result.value, port)
         for text in (b"", b"0", b"65536", b"-1", b"8081 ", b"80x", b"1000000"):
@@ -123,14 +123,16 @@ class ConnectionTests(unittest.TestCase):
                          (b"192.168.1.10", 8081, 0, 72))
 
     def test_saved_age_choices_round_trip_in_actual_disk_format(self):
-        for hours in (24, 48, 72, 168):
-            settings = Settings(b"192.168.1.10", 8081, 0, hours)
-            output = c.create_string_buffer(24)
-            self.lib.ConnectionEncodeSettings(c.byref(settings), output)
-            self.assertEqual(output.raw, self.settings_packet(hours=hours))
-            decoded = Settings()
-            self.assertEqual(self.lib.ConnectionDecodeSettings(output.raw, 24, c.byref(decoded)), 1)
-            self.assertEqual(decoded.windowHours, hours)
+        for port in (8080, 8081):
+            for hours in (24, 48, 72, 168):
+                with self.subTest(port=port, hours=hours):
+                    settings = Settings(b"192.168.1.10", port, 0, hours)
+                    output = c.create_string_buffer(24)
+                    self.lib.ConnectionEncodeSettings(c.byref(settings), output)
+                    self.assertEqual(output.raw, self.settings_packet(port=port, hours=hours))
+                    decoded = Settings()
+                    self.assertEqual(self.lib.ConnectionDecodeSettings(output.raw, 24, c.byref(decoded)), 1)
+                    self.assertEqual((decoded.port, decoded.windowHours), (port, hours))
 
     def test_invalid_settings_do_not_replace_current_connection(self):
         packets = [self.settings_packet(hours=0), self.settings_packet(hours=25),
