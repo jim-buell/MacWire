@@ -85,9 +85,9 @@ both supplied files unchanged and checks their structure, not their equivalence.
 
 ```sh
 python3 scripts/package_release.py --classic-only \
-  --client-bin dist/public/MacWire-1.0-article-loading-fix.bin \
-  --client-disk dist/public/MacWire-1.0-article-loading-fix.dsk \
-  --output dist/public/MacWire-1.0-classic-candidate.zip
+  --client-bin build/classic/MacWire.bin \
+  --client-disk /absolute/path/to/the/matching/MacWire.dsk \
+  --output dist/public/1.0/MacWire-1.0-classic.zip
 ```
 
 Every generated ZIP gets a sibling `.zip.sha256`. Verify it from the output
@@ -96,3 +96,7 @@ include `--client-disk` when distributing both downloads with source. Generated
 downloads remain outside Git. Before publishing, test the matching client and
 Helper together, verify the checksums and notices, and audit the pinned
 dependencies against current advisory data.
+
+Use the exact timestamped disk path printed by the HFS packager. The release
+upload folder should contain only the classic ZIP, the source ZIP, and their
+two checksum sidecars. Old builds and local validation notes are not uploads.

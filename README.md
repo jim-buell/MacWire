@@ -381,5 +381,5 @@ classic application; it is not needed to run MacWire Helper.
 ### License
 
 MacWire and MacWire Helper are [MIT licensed](LICENSE). Third-party components
-retain their [own licenses and notices](THIRD_PARTY.md). This is a prerelease;
-validate the client and server together on your hardware before relying on them.
+retain their [own licenses and notices](THIRD_PARTY.md). Use matching client and
+Helper versions and follow the setup instructions for your hardware.

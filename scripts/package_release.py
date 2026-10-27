@@ -73,15 +73,14 @@ def main():
             archive.write(args.client_disk, "MacWire/downloads/MacWire.dsk")
         if args.classic_only:
             archive.writestr("MacWire/README.txt", (
-                "MacWire classic application - release candidate\n\n"
+                "MacWire 1.0 classic application\n\n"
                 "Use the matching MacWire Helper source from the same release.\n"
                 "See README.md for the full guide, or client/ReadMe.md for the disk document source.\n"
                 "Transfer MacWire.bin in binary mode and decode MacBinary with both\n"
                 "forks preserved, or mount MacWire.dsk as an HFS application disk.\n"
                 "The disk is not bootable and includes no system software or MacTCP.\n"
                 "Keep LICENSE, THIRD_PARTY.md and all license files with these downloads.\n"
-                "New HFS builds also include Read Me and Licenses; older disks may not.\n"
-                "The packager checks structure, not binary/disk equivalence or hardware.\n"
+                "The 1.0 disk includes the styled Read Me and the Licenses folder.\n"
             ))
     checksum = hashlib.sha256(args.output.read_bytes()).hexdigest()
     args.output.with_suffix(args.output.suffix + ".sha256").write_text(
