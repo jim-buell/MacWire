@@ -1,0 +1,11 @@
+{
+  "defaults_revision": 2,
+  "feeds": [
+    {"url": "https://www.thisiscolossal.com/feed/", "name": "Colossal", "enabled": true},
+    {"url": "https://design-milk.com/feed/", "name": "Design Milk", "enabled": true},
+    {"url": "https://www.creativeboom.com/feed/", "name": "Creative Boom", "enabled": true},
+    {"url": "https://feedpress.me/512pixels", "name": "512 Pixels", "enabled": true},
+    {"url": "https://sixcolors.com/feed/", "name": "Six Colors", "enabled": true},
+    {"url": "https://daringfireball.net/feeds/main", "name": "Daring Fireball", "enabled": true}
+  ]
+}

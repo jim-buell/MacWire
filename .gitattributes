@@ -1,0 +1,11 @@
+# Keep personal configuration and generated content out of source exports.
+backend/feeds.json export-ignore
+backend/rss_data export-ignore
+build export-ignore
+client/build export-ignore
+dist export-ignore
+downloads export-ignore
+
+# Preserve third-party notices verbatim, including upstream whitespace.
+backend/licenses/* -whitespace
+client/licenses/* -whitespace

@@ -1,0 +1,1 @@
+/* No Resource Manager calls in the article model. */

@@ -1,0 +1,29 @@
+# Python environments and generated files
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+.venv-*/
+.env
+.env.*
+!.env.example
+*.log
+.pytest_cache/
+.hcwd
+.agents/
+.codex/
+
+# Personal Helper configuration and downloaded publisher content
+backend/feeds.json
+backend/rss_data/
+
+# Local builds, toolchains, and release downloads
+build/
+client/build/
+toolchain/
+dist/
+downloads/
+*.bin
+*.dsk
+*.zip
+*.sha256

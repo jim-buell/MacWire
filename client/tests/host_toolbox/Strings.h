@@ -1,0 +1,1 @@
+/* Host model uses standard C strings. */

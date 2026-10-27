@@ -1,0 +1,6 @@
+# Release dependency pins; Python 3.11+.
+feedparser==6.0.14
+feedparser-sgmllib==2.1.0
+Pillow==13.0.0
+# Synthetic PNG fixtures in the test suite.
+pypng==0.20220715.0
