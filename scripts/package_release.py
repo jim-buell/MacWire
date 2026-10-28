@@ -85,7 +85,7 @@ def main():
             archive.writestr("MacWire/downloads/MacWire.image.bin", diskcopy_binary)
         if args.classic_only:
             archive.writestr("MacWire/README.txt", (
-                "MacWire 1.0 classic application\n\n"
+                "MacWire 1.0.1 classic application\n\n"
                 "Use the matching MacWire Helper source from the same release.\n"
                 "See README.md for the full guide, or client/ReadMe.md for the disk document source.\n"
                 "Transfer MacWire.bin in binary mode and decode MacBinary with both\n"
@@ -95,7 +95,7 @@ def main():
                 "a Finder file type does not convert it into a Disk Copy image.\n"
                 "The disk is not bootable and includes no system software or MacTCP.\n"
                 "Keep LICENSE, THIRD_PARTY.md and all license files with these downloads.\n"
-                "The 1.0 disk includes the styled Read Me and the Licenses folder.\n"
+                "The disk includes the styled Read Me and the Licenses folder.\n"
             ))
     checksum = hashlib.sha256(args.output.read_bytes()).hexdigest()
     args.output.with_suffix(args.output.suffix + ".sha256").write_text(

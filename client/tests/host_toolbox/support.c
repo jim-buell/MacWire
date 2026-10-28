@@ -2,12 +2,10 @@
 #include "Connection.h"
 #include "MacTCPTransport.h"
 #include "Wire.h"
+#include "MenuCommands.h"
 ConnectionSettings gConnection = {"127.0.0.1", 8080, 0, 24};
-char gFeedNames[WIRE_MAX_FEEDS][33];
-short gFeedCount;
 WindowPtr gMainWindow;
 long gContentScroll;
-char gFeedFilter[33];
 int testFailAllocation;
 Ptr NewPtr(long size) { return testFailAllocation ? NULL : malloc(size); }
 Ptr NewPtrClear(long size) { return testFailAllocation ? NULL : calloc(1, size); }
@@ -63,7 +61,20 @@ const char *TestArticleDate(short index) { return gArticles[index].date; }
 const char *TestArticleTime(short index) { return gArticles[index].time; }
 
 void InitConnectionSettings(void) {}
-void UpdateFeedsMenu(void) {}
+static short testMenuItems=4;
+static Boolean testMenuChecks[WIRE_MAX_FEEDS+5];
+MenuHandle GetMenuHandle(short id) { return id==kFeedsMenu ? (MenuHandle)1 : NULL; }
+short CountMItems(MenuHandle menu) { (void)menu; return testMenuItems; }
+void DeleteMenuItem(MenuHandle menu, short item) { (void)menu; testMenuChecks[item]=false; --testMenuItems; }
+void AppendMenu(MenuHandle menu, ConstStringPtr text) { (void)menu; (void)text; ++testMenuItems; }
+void SetMenuItemText(MenuHandle menu, short item, ConstStringPtr text) { (void)menu; (void)item; (void)text; }
+void CheckItem(MenuHandle menu, short item, Boolean checked) { (void)menu; testMenuChecks[item]=checked; }
+short TestFeedCheckedItem(void) {
+    short i;
+    for (i=1; i<=testMenuItems; ++i) if (testMenuChecks[i]) return i;
+    return 0;
+}
+int testFeedsAtFirstPage=-1, testFeedsAtFirstArticle=-1, testFeedCheckedAtFirstRequest=-1;
 short GetReaderImageWidth(void) { return 160; }
 struct TestPacket { char path[256]; unsigned char *data; unsigned long length; int error; };
 static struct TestPacket packets[512];
@@ -86,6 +97,8 @@ void TestResetPackets(void) {
     testWaitDepth=testMaxWaitDepth=testMissingWait=testUnexpectedWait=0;
     testLoadingFinished=testPhotoBeforeTextReady=0;
     testReaderPaintedSelection=-1;
+    testMenuItems=4; memset(testMenuChecks,0,sizeof(testMenuChecks));
+    testFeedsAtFirstPage=testFeedsAtFirstArticle=testFeedCheckedAtFirstRequest=-1;
     testListReady=testEmptyPreview=0;
     testVisibleListRows=4;
 }
@@ -100,6 +113,11 @@ int MacTCPRequest(uint32_t address, unsigned short port, const char *request,
                   unsigned char *body, size_t capacity, unsigned long *length) {
     char path[256]; struct TestPacket *packet;
     (void)address; (void)port;
+    if (testFeedCheckedAtFirstRequest<0) testFeedCheckedAtFirstRequest=TestFeedCheckedItem();
+    if (!strncmp(request,"GET /page?",10) && testFeedsAtFirstPage<0)
+        testFeedsAtFirstPage=testMenuItems-4;
+    if (!strncmp(request,"GET /article/",13) && testFeedsAtFirstArticle<0)
+        testFeedsAtFirstArticle=testMenuItems-4;
     if (packetIndex >= packetCount) return kNetworkHTTPError;
     packet = &packets[packetIndex++];
     sscanf(request, "GET %255s", path);

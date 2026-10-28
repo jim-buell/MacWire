@@ -531,9 +531,10 @@ static void ShowAboutDialog(void)
 
 void DispatchMenuChoice(long choice)
 {
+    /* Release the menu title before a command starts synchronous downloads. */
+    HiliteMenu(0);
     if (choice != 0)
         HandleMenuCommand((short)(choice >> 16), (short)(choice & 0xFFFF));
-    HiliteMenu(0);
 }
 
 void HandleMenuCommand(short menuID, short item)

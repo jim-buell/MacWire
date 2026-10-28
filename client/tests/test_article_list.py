@@ -25,7 +25,7 @@ class ArticleListTests(unittest.TestCase):
         client = ROOT / "client"
         support = client / "tests/host_toolbox"
         library = Path(cls.temp.name) / "articles.so"
-        sources = [client / name for name in ("Articles.c", "Protocol.c", "Wire.c", "Network.c",
+        sources = [client / name for name in ("Articles.c", "Protocol.c", "Wire.c", "Network.c", "Feeds.c",
                                               "ConnectionConfig.c", "DemoTransport.c", "ReadState.c", "ReadHistory.c", "ListPosition.c")]
         subprocess.run(["cc", "-std=c99", "-Wall", "-Werror=implicit-function-declaration",
                         "-shared", "-fPIC", "-DRSS_COMPAT_H", "-I"+str(support), "-I"+str(client),
@@ -74,6 +74,7 @@ class ArticleListTests(unittest.TestCase):
         self.lib.TestSetPrefsDirectory(str(self.prefs).encode())
         self.lib.InitReadHistory()
         self.lib.CancelListPositionRestore()
+        c.c_short.in_dll(self.lib, "gFeedCount").value = 0
         c.c_int.in_dll(self.lib, "gLastSyncSucceeded").value = 0
         (c.c_char * 33).in_dll(self.lib, "gFeedFilter").value = b""
         c.c_ubyte.in_dll(self.lib, "gNetworkUnavailable").value = 0
@@ -582,6 +583,64 @@ class ArticleListTests(unittest.TestCase):
         self.lib.ApplyPendingArticleNavigation()
         self.assertEqual(c.c_short.in_dll(self.lib, 'gSelectedIndex').value, 1)
         self.assertEqual(self.lib.NetworkRequestFailed(), 0)
+
+    def test_feeds_menu_populates_before_index_and_article_downloads(self):
+        self.queue_view()
+        self.lib.SyncWithServer()
+        self.assertEqual(c.c_int.in_dll(self.lib, 'testFeedsAtFirstPage').value, 1)
+        self.assertEqual(c.c_int.in_dll(self.lib, 'testFeedsAtFirstArticle').value, 1)
+
+    def test_cached_sources_populate_menu_before_article_when_feeds_endpoint_fails(self):
+        # Simulate an older Helper without /feeds.
+        self.queue('/feeds', error=-30002)
+        for offset in (0, 50, 100):
+            view = '' if offset == 0 else '1234abcd'
+            self.queue(f'/page?last_sync=0&feed=&hours=24&view={view}&offset={offset}',
+                       encode_index_page(self.entries[offset:offset+50], '1234abcd', 125, offset))
+            self.queue(f'/dates?view=1234abcd&offset={offset}',
+                       encode_dates(self.entries[offset:offset+50], local_timezone('America/Chicago'), compact=True))
+        self.queue('/article/'+self.entries[-1].id,
+                   encode_article(ArticleContent(id=self.entries[-1].id, full_text='Body')))
+        self.lib.SyncWithServer()
+        self.assertEqual(c.c_int.in_dll(self.lib, 'testFeedsAtFirstArticle').value, 1)
+
+    def test_feed_checkmark_changes_before_network_and_rolls_back_on_failure(self):
+        names = ((c.c_char * 33) * 64).in_dll(self.lib, 'gFeedNames')
+        names[0].value = b'Busy'
+        c.c_short.in_dll(self.lib, 'gFeedCount').value = 1
+        self.lib.UpdateFeedsMenu()
+        self.queue('/feeds', encode_feeds(['Busy']))
+        self.queue('/page?last_sync=0&feed=42757379&hours=24&view=&offset=0', error=-30002)
+        self.lib.SelectFeed(5)
+        self.assertEqual(c.c_int.in_dll(self.lib, 'testFeedCheckedAtFirstRequest').value, 5)
+        self.assertEqual(self.lib.TestFeedCheckedItem(), 3)
+        self.assertEqual((c.c_char * 33).in_dll(self.lib, 'gFeedFilter').value, b'')
+
+    def test_named_feed_checkmark_stays_selected_after_success(self):
+        names = ((c.c_char * 33) * 64).in_dll(self.lib, 'gFeedNames')
+        names[0].value = b'Busy'
+        c.c_short.in_dll(self.lib, 'gFeedCount').value = 1
+        self.lib.UpdateFeedsMenu()
+        self.queue('/feeds', encode_feeds(['Busy']))
+        self.queue('/page?last_sync=0&feed=42757379&hours=24&view=&offset=0',
+                   encode_index_page([], '1234abcd', 0, 0))
+        self.queue('/dates?view=1234abcd&offset=0', encode_dates([], local_timezone('America/Chicago'), compact=True))
+        self.lib.SelectFeed(5)
+        self.assertEqual(c.c_int.in_dll(self.lib, 'testFeedCheckedAtFirstRequest').value, 5)
+        self.assertEqual(self.lib.TestFeedCheckedItem(), 5)
+        self.assertEqual(c.c_int.in_dll(self.lib, 'gLastSyncSucceeded').value, 1)
+
+    def test_all_feeds_checkmark_changes_before_successful_network_request(self):
+        (c.c_char * 33).in_dll(self.lib, 'gFeedFilter').value = b'Busy'
+        self.lib.UpdateFeedsMenu()
+        self.queue('/feeds', encode_feeds(['Busy']))
+        self.queue('/page?last_sync=0&feed=&hours=24&view=&offset=0',
+                   encode_index_page([], '1234abcd', 0, 0))
+        self.queue('/dates?view=1234abcd&offset=0', encode_dates([], local_timezone('America/Chicago'), compact=True))
+        self.lib.SelectFeed(3)
+        self.assertEqual(c.c_int.in_dll(self.lib, 'testFeedCheckedAtFirstRequest').value, 3)
+        self.assertEqual(self.lib.TestFeedCheckedItem(), 3)
+        self.assertEqual(c.c_int.in_dll(self.lib, 'gLastSyncSucceeded').value, 1)
 
     def test_actual_sync_fetches_entire_window_and_selects_newest(self):
         c.c_int.in_dll(self.lib, "testExpectedListCount").value = 0

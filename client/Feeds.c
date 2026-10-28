@@ -39,6 +39,8 @@ void SelectFeed(short item)
     CancelListPositionRestore();
     if (item == kFeedsAll) gFeedFilter[0] = 0;
     else strcpy(gFeedFilter, gFeedNames[item - kFeedsFirstSource]);
+    /* Acknowledge the released menu choice before any network request. */
+    UpdateFeedsMenu();
     /* Startup placeholders belong to the local cache even if a configured
        server was unreachable. Refresh still attempts the configured server. */
     if (gUsingStartupSamples && !gConnection.sample) SyncStartupSamples();

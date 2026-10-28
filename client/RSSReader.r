@@ -252,7 +252,7 @@ resource 'DITL' (136) {
         { 82, 16, 100, 144 }, StaticText { disabled, "Port:" };
         { 79, 163, 97, 241 }, EditText { enabled, "8080" };
         { 76, 274, 97, 446 }, Button { enabled, "Test Connection" };
-        { 201, 16, 229, 446 }, StaticText { disabled, "Helper port: 8080 by default.\rUse the same port here and on the Helper." };
+        { 201, 16, 229, 446 }, StaticText { disabled, "" };
         { 0, 0, 0, 0 }, StaticText { disabled, "" };
         { 264, 16, 282, 116 }, StaticText { disabled, "List title lines:" };
         { 261, 116, 282, 194 }, Control { enabled, 226 };
@@ -373,7 +373,7 @@ resource 'DITL' (135) {
     {
         { 112, 264, 132, 336 }, Button { enabled, "OK" };
         { 16, 64, 34, 336 }, StaticText { disabled, "MacWire" };
-        { 84, 64, 102, 336 }, StaticText { disabled, "Version 1.0" };
+        { 84, 64, 102, 336 }, StaticText { disabled, "Version 1.0.1" };
         { 20, 18, 52, 50 }, Icon { disabled, 128 };
         { 108, 260, 136, 340 }, UserItem { enabled };
         { 36, 64, 54, 336 }, StaticText { disabled, "by Jim Buell" };

@@ -102,7 +102,7 @@ both supplied files unchanged and checks their structure, not their equivalence.
 python3 scripts/package_release.py --classic-only \
   --client-bin build/classic/MacWire.bin \
   --client-disk /absolute/path/to/the/matching/MacWire.dsk \
-  --output dist/public/1.0/MacWire-1.0-classic.zip
+  --output dist/public/1.0.1/MacWire-1.0.1-classic.zip
 ```
 
 Every generated ZIP gets a sibling `.zip.sha256`. Verify it from the output

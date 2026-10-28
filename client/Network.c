@@ -379,8 +379,11 @@ void SyncWithServer(void)
     if (waitingForList) BeginNetworkWait();
     strcpy(gHTTPRequest, "/feeds");
     if (SendRequest() == 0 &&
-        WireDecodeFeeds(gResponseBuffer, gResponseLength, gFeedNames, &gFeedCount)==0)
+        WireDecodeFeeds(gResponseBuffer, gResponseLength, gFeedNames, &gFeedCount)==0) {
         ValidateSavedFeed();
+        /* Feed names are ready independently of the article index and photos. */
+        UpdateFeedsMenu();
+    }
 
     // Get last sync timestamp (from persistent storage)
     GetLastSyncTime(lastSync);
@@ -435,6 +438,8 @@ void SyncWithServer(void)
         gIndexLoading=false;
         /* The list is ready: stop the blocking signal before article downloads. */
         if (waitingForList) { EndNetworkWait(); waitingForList=false; }
+        /* Include cached sources even when an older Helper lacks /feeds. */
+        UpdateFeedsMenu();
         /* Queue and invalidate the complete left pane before first selection. */
         UpdateArticleList();
         if (!RestoreListPosition()) {

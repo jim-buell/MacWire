@@ -1,3 +1,4 @@
+#pragma once
 /* Host replacements for Toolbox/UI calls only. Articles.c and Protocol.c
    compile unchanged, with their real allocation, paging and sorting logic. */
 #include <stdio.h>
@@ -46,3 +47,16 @@ void RefreshFeedsFromServer(void);
 void PreviewArticleSelection(short index);
 
 short NextArticleImage(short index);
+
+/* Host Menu Manager for the actual Feeds.c implementation. */
+typedef void *MenuHandle;
+typedef const unsigned char *ConstStringPtr;
+typedef unsigned char Str255[256];
+MenuHandle GetMenuHandle(short id);
+short CountMItems(MenuHandle menu);
+void DeleteMenuItem(MenuHandle menu, short item);
+void AppendMenu(MenuHandle menu, ConstStringPtr text);
+void SetMenuItemText(MenuHandle menu, short item, ConstStringPtr text);
+void CheckItem(MenuHandle menu, short item, Boolean checked);
+
+void SyncStartupSamples(void);
