@@ -26,6 +26,48 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_diskcopy_checksum_known_vectors(self):
+        with patch.object(sys, 'path', [str(ROOT / 'client'), *sys.path]):
+            spec = importlib.util.spec_from_file_location('package_disk_image', ROOT / 'client/package_disk_image.py')
+            package = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(package)
+        for data, expected in ((b'', 0), (b'\x00\x01', 0x80000000),
+                               (b'\x12\x34\x56\x78', 0x2FC9),
+                               (b'\xff\xff\xff\xff', 0x4000BFFF)):
+            self.assertEqual(package.diskcopy_checksum(data), expected)
+        with self.assertRaises(ValueError):
+            package.diskcopy_checksum(b'x')
+
+    def test_diskcopy_transfer_image_preserves_sectors_and_metadata(self):
+        from binascii import crc_hqx
+        import struct
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = bytearray(819200)
+            raw[1024:1026] = b'BD'
+            source, image = root / 'raw.dsk', root / 'disk.image'
+            source.write_bytes(raw)
+            command = [sys.executable, str(ROOT / 'client/package_disk_image.py'),
+                       str(source), '--output', str(image)]
+            subprocess.run(command, capture_output=True, check=True)
+            result = image.read_bytes()
+            self.assertEqual(len(result), 819284)
+            self.assertEqual(result[84:], raw)
+            # Only the BD word is nonzero; its total rotations are a multiple of 32.
+            self.assertEqual(struct.unpack('>IIII', result[64:80]), (819200, 0, 0x4244, 0))
+            self.assertEqual(result[80:84], bytes.fromhex('01 22 01 00'))
+            binary = image.with_name(image.name + '.bin').read_bytes()
+            self.assertEqual(binary[65:73], b'dImgddsk')
+            self.assertEqual(binary[2:2 + binary[1]], b'MacWire.image')
+            self.assertEqual(int.from_bytes(binary[124:126], 'big'), crc_hqx(binary[:124], 0))
+            self.assertEqual(binary[128:128 + len(result)], result)
+            self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
+            source.write_bytes(b'invalid raw disk')
+            bad = root / 'bad.image'
+            command[-1] = str(bad)
+            self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
+            self.assertFalse(bad.exists())
+
     def test_classic_documents_preserve_text_and_fit_teachtext(self):
         from binascii import crc_hqx
         spec = importlib.util.spec_from_file_location('package_disk_docs', ROOT / 'client/package_disk_docs.py')
@@ -95,6 +137,11 @@ class ReleaseTests(unittest.TestCase):
             with zipfile.ZipFile(output) as archive:
                 self.assertEqual(archive.read('MacWire/downloads/MacWire.bin'), binary)
                 self.assertEqual(archive.read('MacWire/downloads/MacWire.dsk'), disk)
+                image_binary = archive.read('MacWire/downloads/MacWire.image.bin')
+                self.assertEqual(image_binary[65:73], b'dImgddsk')
+                image_length = int.from_bytes(image_binary[83:87], 'big')
+                self.assertEqual(image_length, 84 + len(disk))
+                self.assertEqual(image_binary[128 + 84:128 + image_length], disk)
                 for notice in ('LICENSE', 'THIRD_PARTY.md', 'SECURITY.md',
                                'client/licenses/Multiversal-MIT.txt',
                                'client/licenses/newlib-4.6.0.txt',

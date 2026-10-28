@@ -3,6 +3,9 @@
 import argparse
 import hashlib
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,6 +61,14 @@ def main():
         if not resource_length or resource_start + resource_length > len(data):
             parser.error("Client binary has a missing or truncated resource fork")
     files = list(release_files())
+    diskcopy_binary = None
+    if args.client_disk:
+        with tempfile.TemporaryDirectory(prefix='macwire-diskcopy-') as directory:
+            image = Path(directory) / 'MacWire.image'
+            subprocess.run([sys.executable, str(ROOT / 'client/package_disk_image.py'),
+                            str(args.client_disk), '--output', str(image)],
+                           check=True, capture_output=True, text=True)
+            diskcopy_binary = image.with_name(image.name + '.bin').read_bytes()
     if args.classic_only:
         files = [path for path in files if path.relative_to(ROOT).as_posix() in
                  {"LICENSE", "client/ReadMe.md"}
@@ -71,13 +82,17 @@ def main():
             archive.write(args.client_bin, "MacWire/downloads/MacWire.bin")
         if args.client_disk:
             archive.write(args.client_disk, "MacWire/downloads/MacWire.dsk")
+            archive.writestr("MacWire/downloads/MacWire.image.bin", diskcopy_binary)
         if args.classic_only:
             archive.writestr("MacWire/README.txt", (
                 "MacWire 1.0 classic application\n\n"
                 "Use the matching MacWire Helper source from the same release.\n"
                 "See README.md for the full guide, or client/ReadMe.md for the disk document source.\n"
                 "Transfer MacWire.bin in binary mode and decode MacBinary with both\n"
-                "forks preserved, or mount MacWire.dsk as an HFS application disk.\n"
+                "forks preserved. For Disk Copy 6.3.3, transfer MacWire.image.bin in\n"
+                "binary mode, decode MacBinary, and open the resulting MacWire.image.\n"
+                "MacWire.dsk is raw HFS for emulators and raw-image tools; assigning\n"
+                "a Finder file type does not convert it into a Disk Copy image.\n"
                 "The disk is not bootable and includes no system software or MacTCP.\n"
                 "Keep LICENSE, THIRD_PARTY.md and all license files with these downloads.\n"
                 "The 1.0 disk includes the styled Read Me and the Licenses folder.\n"

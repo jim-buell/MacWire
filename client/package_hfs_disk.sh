@@ -50,4 +50,6 @@ PY
 
 humount
 mv -f "$temp_disk" "$disk_path"
+python3 "$(dirname "$0")/package_disk_image.py" "$disk_path" \
+    --output "${disk_path%.*}.image"
 printf '%s\n' "Packaged $disk_path"

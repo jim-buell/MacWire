@@ -167,8 +167,14 @@ System software, drivers, MacTCP, and fonts are supplied separately.
 Use the classic ZIP from the release and keep its license notices. Transfer the
 MacBinary application (`.bin`) in binary mode, then decode it on the classic Mac
 with a MacBinary-compatible utility so both the data and resource forks survive.
-Alternatively, mount the supplied HFS disk image and copy MacWire to your hard
-disk in Finder. The image contains the application, not a bootable System disk.
+For **Disk Copy 6.3.3 on the classic Mac**, transfer `MacWire.image.bin` in binary
+mode and decode MacBinary, then mount the resulting `MacWire.image` and copy
+MacWire to your hard disk in Finder. Decoding preserves the image's Finder type
+and creator; changing those codes on a raw image is not a format conversion.
+The `.dsk` file is raw HFS for emulators and compatible raw-image tools, not a
+Disk Copy container. Both images contain the same application and notices,
+not a bootable System disk. Disk Copy 4.2 itself writes disks rather than mounting
+them; use the later Disk Copy 6.3.3 for desktop mounting.
 Launch the decoded or copied application in Finder. Use client and Helper builds
 from the same release; older Helpers may lack the current paging endpoints.
 

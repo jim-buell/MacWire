@@ -12,14 +12,16 @@ ROOT = Path(__file__).resolve().parents[1]
 TEXT_LIMIT = 30000  # Leave room below TeachText's roughly 32 KB text limit.
 
 
-def macbinary(name, data, resource=b''):
+def macbinary(name, data, resource=b'', type_creator=b'TEXTttxt'):
     encoded = name.encode('mac_roman')
     if not 1 <= len(encoded) <= 31 or ':' in name:
         raise ValueError('Invalid HFS document name')
+    if len(type_creator) != 8:
+        raise ValueError('MacBinary type and creator must total eight bytes')
     header = bytearray(128)
     header[1] = len(encoded)
     header[2:2 + len(encoded)] = encoded
-    header[65:73] = b'TEXTttxt'
+    header[65:73] = type_creator
     header[83:87] = len(data).to_bytes(4, 'big')
     header[87:91] = len(resource).to_bytes(4, 'big')
     timestamp = int((datetime.now() - datetime(1904, 1, 1)).total_seconds())

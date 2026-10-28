@@ -12,7 +12,10 @@ manual MacTCP addressing, and a worked LAN example, follow the
 Use a matching MacWire client and Helper from the same release. Transfer the
 MacBinary application (`.bin`) in binary mode, then decode it on the classic Mac
 with both its data and resource forks preserved. Alternatively, use the supplied
-application-only HFS disk image, if available. It is not a bootable System disk.
+Disk Copy image: transfer `MacWire.image.bin` in binary mode, decode MacBinary,
+then mount the resulting `MacWire.image` with Disk Copy 6.3.3. The `.dsk` file
+is raw HFS for emulators/raw-image tools; assigning it a Finder type does not
+convert it to Disk Copy format. Neither image is a bootable System disk.
 Launch the decoded MacWire application in Finder.
 
 ## Connect to the Helper

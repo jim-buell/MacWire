@@ -20,7 +20,11 @@ cmake --build build/classic -j4
 ```
 
 The build produces `build/classic/MacWire.bin` and a timestamped 800 KB HFS disk
-image. The disk includes a SimpleText **Read Me** and a **Licenses**
+image (`.dsk`, raw sectors), plus a Disk Copy 4.2 container (`.image`) and its
+MacBinary transfer wrapper (`.image.bin`, `dImg`/`ddsk` Finder metadata).
+Use the decoded `.image` with Disk Copy 6.3.3 on the classic Mac; raw `.dsk`
+images are for emulators and compatible raw-image tools.
+The disk includes a SimpleText **Read Me** and a **Licenses**
 folder. `client/ReadMe.md` is the UTF-8 source; `client/package_disk_docs.py`
 converts documents to MacRoman with CR line endings and `TEXT`/`ttxt` Finder
 metadata. The Read Me preserves Markdown bold/italic emphasis in a native `styl`
@@ -40,6 +44,17 @@ Preview the disk documents without mounting HFS, or package an already built app
 python3 client/package_disk_docs.py build/disk-docs
 sh client/package_hfs_disk.sh build/classic/MacWire.bin build/classic/MacWire.dsk
 ```
+
+To wrap an existing raw disk without rebuilding the application:
+
+```sh
+python3 client/package_disk_image.py /path/to/MacWire.dsk --output build/MacWire.image
+```
+
+The wrapper preserves all HFS sectors, adds the DC42 header and checksum, and
+requires no third-party Python packages. Format references:
+[CiderPress II Disk Copy notes](https://ciderpress2.com/formatdoc/DiskCopy-notes.html)
+and [Apple's Disk Copy 6.3 quick reference](https://savagetaylor.com/TIL/KB030584.html).
 
 ## Assets and tests
 
