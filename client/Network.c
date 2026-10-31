@@ -361,7 +361,7 @@ failed:
     ShowConnectionError();
 }
 
-void SyncWithServer(void)
+static void SyncArticleList(Boolean changingFeed)
 {
     char lastSync[20];
     short result;
@@ -374,8 +374,8 @@ void SyncWithServer(void)
         SyncStartupSamples();
         return;
     }
-    /* With a displayed list, browsing and cancellation remain available. */
-    waitingForList = gMaxArticles == 0;
+    /* A feed change waits for its replacement list, even with an old list visible. */
+    waitingForList = changingFeed || gMaxArticles == 0;
     if (waitingForList) BeginNetworkWait();
     strcpy(gHTTPRequest, "/feeds");
     if (SendRequest() == 0 &&
@@ -454,6 +454,16 @@ void SyncWithServer(void)
         ShowConnectionError(); UpdateArticleList(); UpdateContentPane(); UpdateScrollBars();
     }
     if (waitingForList) EndNetworkWait();
+}
+
+void SyncWithServer(void)
+{
+    SyncArticleList(false);
+}
+
+void SyncFeedWithServer(void)
+{
+    SyncArticleList(true);
 }
 
 /*

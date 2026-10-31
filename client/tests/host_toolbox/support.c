@@ -82,6 +82,7 @@ static int packetCount, packetIndex;
 int testNavigateOnRequest, testSelectOnRequest;
 int testLoadingFinished, testPhotoBeforeTextReady;
 int testExpectedListCount=-1, testPartialLists, testWaitDepth, testMaxWaitDepth, testMissingWait, testUnexpectedWait;
+int testExpectedListWait=-1;
 void BeginNetworkWait(void) {
     ++testWaitDepth;
     if (testWaitDepth>testMaxWaitDepth) testMaxWaitDepth=testWaitDepth;
@@ -94,6 +95,7 @@ void TestResetPackets(void) {
     testNavigateOnRequest=testSelectOnRequest=0;
     extern int testDeferredAction; testDeferredAction=0;
     testExpectedListCount=-1; testPartialLists=testUnsortedListPaints=0;
+    testExpectedListWait=-1;
     testWaitDepth=testMaxWaitDepth=testMissingWait=testUnexpectedWait=0;
     testLoadingFinished=testPhotoBeforeTextReady=0;
     testReaderPaintedSelection=-1;
@@ -121,6 +123,11 @@ int MacTCPRequest(uint32_t address, unsigned short port, const char *request,
     if (packetIndex >= packetCount) return kNetworkHTTPError;
     packet = &packets[packetIndex++];
     sscanf(request, "GET %255s", path);
+    if (testExpectedListWait>=0 && (!strcmp(path,"/feeds") ||
+        !strncmp(path,"/page?",6) || !strncmp(path,"/dates?",7))) {
+        if (testExpectedListWait && !testWaitDepth) ++testMissingWait;
+        if (!testExpectedListWait && testWaitDepth) ++testUnexpectedWait;
+    }
     if (!strncmp(path,"/article/",9) || !strncmp(path,"/image/",7)) {
         if (testWaitDepth) ++testUnexpectedWait;
         if (!strncmp(path,"/image/",7) &&
@@ -130,7 +137,7 @@ int MacTCPRequest(uint32_t address, unsigned short port, const char *request,
     if (!strncmp(path,"/page?",6) || !strncmp(path,"/dates?",7)) {
         if (testExpectedListCount>=0 && gMaxArticles!=testExpectedListCount) ++testPartialLists;
         if (gMaxArticles==0 && !testWaitDepth) ++testMissingWait;
-        if (gMaxArticles>0 && testWaitDepth) ++testUnexpectedWait;
+        if (gMaxArticles>0 && testWaitDepth && testExpectedListWait!=1) ++testUnexpectedWait;
     }
     if (strcmp(path, packet->path) || packet->length > capacity) return kNetworkHTTPError;
     if (testSelectOnRequest) {

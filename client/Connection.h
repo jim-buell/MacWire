@@ -21,6 +21,7 @@ const char *NetworkErrorText(void);
 int NetworkRequestFailed(void);
 int NetworkPoll(void);
 void RefreshFeedsFromServer(void);
+void SyncFeedWithServer(void);
 const char *FeedRefreshStatusText(void);
 int QueueArticleNavigation(short direction);
 int QueueArticleSelection(short index);

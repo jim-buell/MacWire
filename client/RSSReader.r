@@ -373,7 +373,7 @@ resource 'DITL' (135) {
     {
         { 112, 264, 132, 336 }, Button { enabled, "OK" };
         { 16, 64, 34, 336 }, StaticText { disabled, "MacWire" };
-        { 84, 64, 102, 336 }, StaticText { disabled, "Version 1.0.1" };
+        { 84, 64, 102, 336 }, StaticText { disabled, "Version 1.0.2" };
         { 20, 18, 52, 50 }, Icon { disabled, 128 };
         { 108, 260, 136, 340 }, UserItem { enabled };
         { 36, 64, 54, 336 }, StaticText { disabled, "by Jim Buell" };

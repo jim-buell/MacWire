@@ -1,4 +1,4 @@
-# MacWire 1.0.1  
+# MacWire 1.0.2  
   
 **MacWire is an RSS reader for Classic Macintosh—specifically Compact Macs running Macintosh System 7.**   
   

@@ -642,6 +642,40 @@ class ArticleListTests(unittest.TestCase):
         self.assertEqual(self.lib.TestFeedCheckedItem(), 3)
         self.assertEqual(c.c_int.in_dll(self.lib, 'gLastSyncSucceeded').value, 1)
 
+    def test_named_feed_switch_waits_for_list_with_existing_articles(self):
+        self.check_feed_switch_wait(5, False)
+
+    def test_all_feeds_switch_waits_for_list_with_existing_articles(self):
+        (c.c_char * 33).in_dll(self.lib, 'gFeedFilter').value = b'Busy'
+        self.check_feed_switch_wait(3, False)
+
+    def test_failed_feed_switch_restores_cursor_with_existing_articles(self):
+        self.check_feed_switch_wait(5, True)
+
+    def check_feed_switch_wait(self, item, fails):
+        self.load()
+        names = ((c.c_char * 33) * 64).in_dll(self.lib, 'gFeedNames')
+        names[0].value = b'Busy'
+        c.c_short.in_dll(self.lib, 'gFeedCount').value = 1
+        c.c_int.in_dll(self.lib, 'testExpectedListWait').value = 1
+        feed = '42757379' if item == 5 else ''
+        self.queue('/feeds', encode_feeds(['Busy']))
+        path = f'/page?last_sync=0&feed={feed}&hours=24&view=&offset=0'
+        if fails:
+            self.queue(path, error=-30002)
+        else:
+            self.queue(path, encode_index_page(self.entries[:1], '1234abcd', 1, 0))
+            self.queue('/dates?view=1234abcd&offset=0',
+                       encode_dates(self.entries[:1], compact=True))
+            self.queue('/article/'+self.entries[0].id,
+                       encode_article(ArticleContent(id=self.entries[0].id, full_text='Body')))
+        self.lib.SelectFeed(item)
+        self.assertEqual(c.c_int.in_dll(self.lib, 'testMaxWaitDepth').value, 1)
+        for counter in ('testMissingWait', 'testUnexpectedWait', 'testWaitDepth'):
+            self.assertEqual(c.c_int.in_dll(self.lib, counter).value, 0, counter)
+        self.assertEqual(c.c_int.in_dll(self.lib, 'gLastSyncSucceeded').value, int(not fails))
+        self.assertEqual(self.lib.TestPacketsRemaining(), 0)
+
     def test_actual_sync_fetches_entire_window_and_selects_newest(self):
         c.c_int.in_dll(self.lib, "testExpectedListCount").value = 0
         self.queue_view()

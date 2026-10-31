@@ -85,7 +85,7 @@ def main():
             archive.writestr("MacWire/downloads/MacWire.image.bin", diskcopy_binary)
         if args.classic_only:
             archive.writestr("MacWire/README.txt", (
-                "MacWire 1.0.1 classic application\n\n"
+                "MacWire 1.0.2 classic application\n\n"
                 "Use the matching MacWire Helper source from the same release.\n"
                 "See README.md for the full guide, or client/ReadMe.md for the disk document source.\n"
                 "Transfer MacWire.bin in binary mode and decode MacBinary with both\n"
